@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String             @id @default(uuid())
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  name       String
+  email      String             @unique
+  hash       String
+  hashedRt   String?
+  workspaces WorkspacesOnUser[]
+}
+
+model Workspace {
+  id       String             @id @default(uuid())
+  name     String
+  projects Project[]
+  members  WorkspacesOnUser[]
+}
+
+model WorkspacesOnUser {
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String // relation scalar field (used in the `@relation` attribute above)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String // relation scalar field (used in the `@relation` attribute above)
+
+  @@id([userId, workspaceId])
+}
+
+model Project {
+  id          String     @id @default(uuid())
+  name        String
+  Workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+  sections    Section[]
+}
+
+model Section {
+  id        String   @id @default(uuid())
+  name      String
+  Project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+  tasks     Task[]
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  name      String
+  Section   Section? @relation(fields: [sectionId], references: [id])
+  sectionId String?
+}
